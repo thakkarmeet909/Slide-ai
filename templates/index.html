@@ -1,126 +1,57 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
     <title>AI PPT Generator</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', sans-serif;
-        }
-
         body {
-            height: 100vh;
+            font-family: Arial;
             background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            text-align: center;
+            padding-top: 80px;
             color: white;
         }
 
-        .container {
-            text-align: center;
-            background: rgba(255, 255, 255, 0.05);
-            padding: 50px;
-            border-radius: 20px;
-            backdrop-filter: blur(15px);
-            box-shadow: 0 0 40px rgba(0,0,0,0.5);
-        }
-
-        h1 {
-            font-size: 42px;
-            margin-bottom: 10px;
-        }
-
-        p {
-            margin-bottom: 30px;
-            color: #ccc;
-        }
-
-        input {
-            padding: 15px;
-            width: 300px;
+        input, select {
+            padding: 12px;
+            margin: 10px;
+            width: 250px;
+            border-radius: 8px;
             border: none;
-            border-radius: 10px;
-            font-size: 16px;
-            outline: none;
         }
 
         button {
-            padding: 15px 25px;
-            margin-left: 10px;
+            padding: 12px 20px;
+            border-radius: 8px;
+            background: #00c6ff;
             border: none;
-            border-radius: 10px;
-            background: linear-gradient(45deg, #00c6ff, #0072ff);
-            color: white;
-            font-weight: bold;
             cursor: pointer;
-            transition: 0.3s;
-        }
-
-        button:hover {
-            transform: scale(1.05);
-        }
-
-        .loader {
-            margin-top: 20px;
-            display: none;
-        }
-
-        .loader div {
-            width: 10px;
-            height: 10px;
-            margin: 3px;
-            background: white;
-            border-radius: 50%;
-            display: inline-block;
-            animation: bounce 0.6s infinite alternate;
-        }
-
-        .loader div:nth-child(2) {
-            animation-delay: 0.2s;
-        }
-
-        .loader div:nth-child(3) {
-            animation-delay: 0.4s;
-        }
-
-        @keyframes bounce {
-            to {
-                transform: translateY(-10px);
-                opacity: 0.5;
-            }
         }
     </style>
 </head>
 
 <body>
 
-<div class="container">
-    <h1>🚀 AI PPT Generator</h1>
-    <p>Create stunning presentations instantly</p>
+<h1>🚀 AI PPT Generator</h1>
 
-    <form action="/generate" onsubmit="showLoader()">
-        <input type="text" name="topic" placeholder="Enter any topic..." required>
-        <button type="submit">Generate PPT</button>
-    </form>
+<form action="/generate">
 
-    <div class="loader" id="loader">
-        <div></div>
-        <div></div>
-        <div></div>
-    </div>
-</div>
+    <input type="text" name="topic" placeholder="Topic" required><br>
 
-<script>
-function showLoader() {
-    document.getElementById("loader").style.display = "block";
-}
-</script>
+    <select name="theme">
+        <option value="navy">Navy</option>
+        <option value="dark">Dark</option>
+        <option value="green">Green</option>
+        <option value="purple">Purple</option>
+    </select><br>
+
+    <input type="number" name="slides" placeholder="Slides"><br>
+
+    <input type="text" name="extra" placeholder="Extra instructions"><br>
+
+    <button type="submit">Generate PPT</button>
+
+</form>
 
 </body>
 </html>
