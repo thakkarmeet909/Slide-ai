@@ -1,5 +1,3 @@
-
-
 import os
 import json
 import re
@@ -11,51 +9,45 @@ load_dotenv()
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
 SYSTEM_PROMPT = """You are a presentation designer.
-Return ONLY a valid JSON object. No explanation. No markdown. No code fences.
+Return ONLY a valid JSON object.
 
-Use this exact structure:
+Structure:
 {
-  "title": "Main presentation title",
+  "title": "Main title",
   "subtitle": "Short tagline",
   "slides": [
     {
       "heading": "Slide title",
-      "bullets": ["Point one", "Point two", "Point three"],
-      "speaker_note": "What to say here"
+      "bullets": ["Point 1", "Point 2"],
+      "speaker_note": "Explain here"
     }
   ]
 }
-
-Rules:
-- Exactly 6 slides
-- 3-4 bullets per slide, each under 12 words
-- First slide: Introduction
-- Last slide: Conclusion
-- Return ONLY JSON. Nothing else.
 """
 
-def generate_slide_content(topic: str) -> dict:
-    print(f"Asking Groq about: '{topic}'...")
+def generate_slide_content(topic: str, extra: str = "", num_slides: int = 6) -> dict:
+    print(f"Asking AI about: {topic}")
+
+    prompt = f"Topic: {topic}\nCreate exactly {num_slides} slides."
+
+    if extra:
+        prompt += f"\nExtra instructions: {extra}"
 
     response = client.chat.completions.create(
         model="llama-3.3-70b-versatile",
         messages=[
             {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": f"Topic: {topic}"}
+            {"role": "user", "content": prompt}
         ]
     )
 
     raw = response.choices[0].message.content
-
-    # Clean response
     cleaned = re.sub(r"```json|```", "", raw).strip()
 
     try:
         data = json.loads(cleaned)
-    except Exception as e:
-        print("❌ JSON parsing failed")
-        print("Raw response:", raw)
+        return data
+    except:
+        print("Error parsing JSON")
+        print(raw)
         return None
-
-    print(f"✅ Got {len(data['slides'])} slides!")
-    return data
