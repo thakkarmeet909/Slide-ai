@@ -1,0 +1,6 @@
+google-genai
+python-pptx
+python-dotenv
+lxml
+flask
+gunicorn
