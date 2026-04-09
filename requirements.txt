@@ -3,4 +3,6 @@ python-pptx
 python-dotenv
 lxml
 flask
+flask-cors
+groq
 gunicorn
