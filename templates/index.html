@@ -1,214 +1,357 @@
-from pptx import Presentation
-from pptx.util import Inches, Pt
-from pptx.dml.color import RGBColor
-from pptx.enum.text import PP_ALIGN
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>SlideAI — AI Presentation Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0a0f;--surface:#13131a;--surface2:#1c1c26;--border:#2a2a38;
+  --accent:#7c6fff;--accent2:#a78bfa;--accent3:#06b6d4;
+  --text:#f0f0ff;--muted:#8b8ba8;--subtle:#4a4a6a;
+  --success:#10b981;
+}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+nav{display:flex;align-items:center;justify-content:space-between;padding:1.2rem 2.5rem;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;background:rgba(10,10,15,0.92);backdrop-filter:blur(12px)}
+.logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:1.1rem;letter-spacing:-0.3px}
+.logo-dot{width:28px;height:28px;background:linear-gradient(135deg,var(--accent),var(--accent3));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px}
+.nav-pills{display:flex;gap:6px}
+.nav-pill{padding:6px 14px;border-radius:20px;font-size:13px;color:var(--muted);cursor:pointer;transition:all .2s;border:1px solid transparent}
+.nav-pill:hover,.nav-pill.active{background:var(--surface2);color:var(--text);border-color:var(--border)}
+.nav-cta{padding:8px 18px;background:var(--accent);color:#fff;border:none;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif}
+.hero{text-align:center;padding:5rem 1rem 3rem}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(124,111,255,0.12);border:1px solid rgba(124,111,255,0.3);border-radius:20px;padding:6px 16px;font-size:12px;color:var(--accent2);margin-bottom:1.5rem;font-weight:500}
+.badge-dot{width:6px;height:6px;background:var(--accent);border-radius:50%;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.hero h1{font-size:clamp(2rem,5vw,3.8rem);font-weight:800;line-height:1.1;letter-spacing:-1.5px;margin-bottom:1.2rem;background:linear-gradient(135deg,#fff 30%,var(--accent2) 70%,var(--accent3));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero p{font-size:1.05rem;color:var(--muted);max-width:520px;margin:0 auto 2.5rem;line-height:1.7}
+.hero-stats{display:flex;justify-content:center;gap:2.5rem;margin-bottom:3rem}
+.stat-num{font-size:1.4rem;font-weight:700;color:var(--text)}
+.stat-label{font-size:12px;color:var(--muted);margin-top:2px;text-align:center}
+.main-card{max-width:720px;margin:0 auto 3rem;background:var(--surface);border:1px solid var(--border);border-radius:24px;overflow:hidden;box-shadow:0 0 80px rgba(124,111,255,0.08)}
+.tabs{display:flex;border-bottom:1px solid var(--border);padding:0 1.5rem}
+.tab{padding:1rem 1.2rem;font-size:14px;font-weight:500;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;margin-bottom:-1px}
+.tab.active{color:var(--accent2);border-bottom-color:var(--accent)}
+.form-body{padding:1.8rem}
+.field{margin-bottom:1.4rem}
+.field-label{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.field-label span{background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:1px 6px;font-size:10px;color:var(--subtle);font-weight:400;text-transform:none;letter-spacing:0}
+input[type=text],textarea{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:13px 16px;font-size:15px;color:var(--text);font-family:'Inter',sans-serif;outline:none;transition:border-color .2s,box-shadow .2s}
+input[type=text]:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(124,111,255,0.12)}
+input::placeholder,textarea::placeholder{color:var(--subtle)}
+textarea{resize:none;height:80px}
+.theme-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.theme-card{border:2px solid var(--border);border-radius:12px;padding:10px 8px;cursor:pointer;transition:all .2s;text-align:center;background:var(--surface2)}
+.theme-card:hover{border-color:var(--subtle);transform:translateY(-2px)}
+.theme-card.selected{border-color:var(--accent);background:rgba(124,111,255,0.08)}
+.theme-preview{height:36px;border-radius:8px;margin-bottom:6px;display:flex;overflow:hidden;gap:2px}
+.theme-preview div{flex:1;border-radius:3px}
+.theme-name{font-size:11px;color:var(--muted);font-weight:500}
+.slider-row{display:flex;align-items:center;gap:12px}
+.slider{flex:1;-webkit-appearance:none;appearance:none;height:4px;border-radius:2px;background:var(--border);outline:none;cursor:pointer}
+.slider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:18px;height:18px;border-radius:50%;background:var(--accent);cursor:pointer;border:2px solid var(--bg)}
+.slider::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--accent);cursor:pointer;border:2px solid var(--bg)}
+.slider-val{min-width:28px;text-align:center;font-weight:700;font-size:16px;color:var(--accent2)}
+.gen-btn{width:100%;padding:16px;border-radius:14px;background:linear-gradient(135deg,var(--accent),var(--accent3));border:none;color:#fff;font-size:16px;font-weight:700;font-family:'Inter',sans-serif;cursor:pointer;transition:all .2s;letter-spacing:-.2px}
+.gen-btn:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(124,111,255,0.35)}
+.gen-btn:active{transform:translateY(0)}
+.gen-btn:disabled{opacity:.6;cursor:not-allowed;transform:none}
+.progress-section{display:none;padding:1.5rem 1.8rem;border-top:1px solid var(--border)}
+.progress-steps{display:flex;gap:8px;margin-bottom:1rem;align-items:flex-start}
+.pstep{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px}
+.pstep-dot{width:36px;height:36px;border-radius:50%;background:var(--surface2);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:14px;transition:all .3s}
+.pstep.active .pstep-dot{border-color:var(--accent);background:rgba(124,111,255,0.15);animation:dotpulse 1s infinite alternate}
+.pstep.done .pstep-dot{border-color:var(--success);background:rgba(16,185,129,0.15)}
+@keyframes dotpulse{from{box-shadow:0 0 0 0 rgba(124,111,255,0.5)}to{box-shadow:0 0 0 8px rgba(124,111,255,0)}}
+.pstep-label{font-size:11px;color:var(--muted);font-weight:500;text-align:center}
+.pstep.active .pstep-label{color:var(--accent2)}
+.pstep.done .pstep-label{color:var(--success)}
+.progress-bar-wrap{height:4px;background:var(--border);border-radius:2px;overflow:hidden}
+.progress-bar{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent3));border-radius:2px;transition:width .6s ease;width:0%}
+.result-section{display:none;padding:1.5rem 1.8rem;border-top:1px solid var(--border)}
+.result-header{display:flex;align-items:center;gap:12px;margin-bottom:1.2rem}
+.result-icon{width:40px;height:40px;border-radius:50%;background:rgba(16,185,129,0.15);border:2px solid var(--success);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.result-title{font-weight:700;font-size:1.05rem}
+.result-sub{font-size:13px;color:var(--muted);margin-top:2px}
+.slide-chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:1rem}
+.chip{padding:6px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:20px;font-size:12px;color:var(--muted);cursor:pointer;transition:all .2s}
+.chip:hover,.chip.active-chip{background:rgba(124,111,255,0.1);border-color:var(--accent);color:var(--accent2)}
+.slide-detail{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:1.2rem;min-height:90px}
+.slide-detail h4{font-size:14px;font-weight:600;margin-bottom:10px;color:var(--accent2)}
+.slide-detail ul{padding-left:18px}
+.slide-detail li{font-size:13px;color:var(--muted);line-height:1.8}
+.dl-btn{display:none;align-items:center;justify-content:center;gap:10px;width:100%;padding:15px;border-radius:12px;background:var(--success);border:none;color:#fff;font-size:15px;font-weight:700;font-family:'Inter',sans-serif;cursor:pointer;text-decoration:none;transition:all .2s}
+.dl-btn:hover{background:#0da271;transform:translateY(-1px)}
+.error-box{display:none;background:rgba(226,75,74,0.1);border:1px solid rgba(226,75,74,0.3);border-radius:12px;padding:12px 16px;color:#f87171;font-size:13px;margin-bottom:1.2rem;line-height:1.5}
+.features{max-width:720px;margin:0 auto 5rem;padding:0 1rem}
+.feat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.feat-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:1.3rem}
+.feat-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px;margin-bottom:10px}
+.feat-card h4{font-size:14px;font-weight:600;margin-bottom:5px;color:var(--text)}
+.feat-card p{font-size:12px;color:var(--muted);line-height:1.65}
+@media(max-width:600px){
+  .feat-grid{grid-template-columns:1fr}
+  .theme-grid{grid-template-columns:repeat(2,1fr)}
+  .hero-stats{gap:1.5rem}
+  nav{padding:1rem 1.2rem}
+  .nav-pills{display:none}
+}
+</style>
+</head>
+<body>
 
-THEMES = {
-    "elegant": {
-        "bg1":           RGBColor(0x1A, 0x1A, 0x2E),
-        "bg2":           RGBColor(0x16, 0x21, 0x3E),
-        "accent":        RGBColor(0xE2, 0xC2, 0x7D),
-        "text":          RGBColor(0xFF, 0xFF, 0xFF),
-        "sub":           RGBColor(0xCC, 0xAA, 0x66),
-        "bullet_bg":     RGBColor(0x0D, 0x11, 0x22),
-        "bullet_border": RGBColor(0x2A, 0x35, 0x5A),
-        "arrow":         RGBColor(0xE2, 0xC2, 0x7D),
-    },
-    "ocean": {
-        "bg1":           RGBColor(0x0F, 0x20, 0x44),
-        "bg2":           RGBColor(0x0A, 0x18, 0x36),
-        "accent":        RGBColor(0x7D, 0xD3, 0xFC),
-        "text":          RGBColor(0xFF, 0xFF, 0xFF),
-        "sub":           RGBColor(0x93, 0xC5, 0xFD),
-        "bullet_bg":     RGBColor(0x07, 0x12, 0x28),
-        "bullet_border": RGBColor(0x1E, 0x40, 0x7A),
-        "arrow":         RGBColor(0x38, 0xBD, 0xF8),
-    },
-    "rose": {
-        "bg1":           RGBColor(0x1C, 0x0A, 0x14),
-        "bg2":           RGBColor(0x2D, 0x0A, 0x1E),
-        "accent":        RGBColor(0xFD, 0xA4, 0xAF),
-        "text":          RGBColor(0xFF, 0xFF, 0xFF),
-        "sub":           RGBColor(0xFB, 0xBC, 0xC5),
-        "bullet_bg":     RGBColor(0x10, 0x05, 0x0C),
-        "bullet_border": RGBColor(0x5E, 0x10, 0x30),
-        "arrow":         RGBColor(0xE1, 0x1D, 0x6A),
-    },
-    "forest": {
-        "bg1":           RGBColor(0x05, 0x2E, 0x16),
-        "bg2":           RGBColor(0x03, 0x1E, 0x0E),
-        "accent":        RGBColor(0xBB, 0xF7, 0xD0),
-        "text":          RGBColor(0xFF, 0xFF, 0xFF),
-        "sub":           RGBColor(0x86, 0xEF, 0xAC),
-        "bullet_bg":     RGBColor(0x02, 0x10, 0x08),
-        "bullet_border": RGBColor(0x14, 0x53, 0x2D),
-        "arrow":         RGBColor(0x16, 0xA3, 0x4A),
-    },
-    "minimal": {
-        "bg1":           RGBColor(0xFA, 0xFA, 0xFA),
-        "bg2":           RGBColor(0xF3, 0xF4, 0xF6),
-        "accent":        RGBColor(0x11, 0x11, 0x11),
-        "text":          RGBColor(0x11, 0x11, 0x11),
-        "sub":           RGBColor(0x6B, 0x72, 0x80),
-        "bullet_bg":     RGBColor(0xFF, 0xFF, 0xFF),
-        "bullet_border": RGBColor(0xD1, 0xD5, 0xDB),
-        "arrow":         RGBColor(0x9C, 0xA3, 0xAF),
-    },
-    "sunset": {
-        "bg1":           RGBColor(0x1C, 0x0A, 0x00),
-        "bg2":           RGBColor(0x2D, 0x10, 0x00),
-        "accent":        RGBColor(0xFC, 0xD3, 0x4D),
-        "text":          RGBColor(0xFF, 0xFF, 0xFF),
-        "sub":           RGBColor(0xFD, 0xBA, 0x74),
-        "bullet_bg":     RGBColor(0x10, 0x05, 0x00),
-        "bullet_border": RGBColor(0x7C, 0x2D, 0x12),
-        "arrow":         RGBColor(0xEA, 0x58, 0x0C),
-    },
-    "violet": {
-        "bg1":           RGBColor(0x0D, 0x07, 0x20),
-        "bg2":           RGBColor(0x13, 0x0A, 0x30),
-        "accent":        RGBColor(0xC4, 0xB5, 0xFD),
-        "text":          RGBColor(0xFF, 0xFF, 0xFF),
-        "sub":           RGBColor(0xA7, 0x8B, 0xFA),
-        "bullet_bg":     RGBColor(0x08, 0x04, 0x14),
-        "bullet_border": RGBColor(0x3B, 0x1A, 0x7A),
-        "arrow":         RGBColor(0x7C, 0x3A, 0xED),
-    },
-    "slate": {
-        "bg1":           RGBColor(0x0F, 0x17, 0x2A),
-        "bg2":           RGBColor(0x1E, 0x29, 0x3B),
-        "accent":        RGBColor(0xE2, 0xE8, 0xF0),
-        "text":          RGBColor(0xFF, 0xFF, 0xFF),
-        "sub":           RGBColor(0x94, 0xA3, 0xB8),
-        "bullet_bg":     RGBColor(0x0A, 0x10, 0x1E),
-        "bullet_border": RGBColor(0x33, 0x44, 0x55),
-        "arrow":         RGBColor(0x64, 0x74, 0x8B),
-    },
+<nav>
+  <div class="logo">
+    <div class="logo-dot">✦</div>
+    SlideAI
+  </div>
+  <div class="nav-pills">
+    <div class="nav-pill active">Generator</div>
+    <div class="nav-pill">Templates</div>
+    <div class="nav-pill">History</div>
+  </div>
+  <button class="nav-cta">Pro ✦</button>
+</nav>
+
+<div class="hero">
+  <div class="hero-badge"><span class="badge-dot"></span> Powered by Groq LLaMA 3.3 70B</div>
+  <h1>Turn any idea into<br/>a stunning presentation</h1>
+  <p>Describe your topic, choose a style, and get a complete professional PowerPoint in seconds — no design skills needed.</p>
+  <div class="hero-stats">
+    <div class="stat"><div class="stat-num">~10s</div><div class="stat-label">avg generation</div></div>
+    <div class="stat"><div class="stat-num">8</div><div class="stat-label">premium themes</div></div>
+    <div class="stat"><div class="stat-num">100%</div><div class="stat-label">free to use</div></div>
+  </div>
+</div>
+
+<div class="main-card">
+  <div class="tabs">
+    <div class="tab active">Create</div>
+    <div class="tab">Settings</div>
+  </div>
+
+  <div class="form-body">
+    <div class="error-box" id="err"></div>
+
+    <div class="field">
+      <div class="field-label">Presentation topic <span>required</span></div>
+      <input type="text" id="topic" placeholder="e.g. The Future of Artificial Intelligence in Healthcare"/>
+    </div>
+
+    <div class="field">
+      <div class="field-label">Choose a theme</div>
+      <div class="theme-grid" id="theme-grid">
+        <div class="theme-card selected" data-theme="elegant" onclick="pickTheme(this)">
+          <div class="theme-preview"><div style="background:#1a1a2e"></div><div style="background:#e2c27d"></div><div style="background:#fff"></div></div>
+          <div class="theme-name">Elegant</div>
+        </div>
+        <div class="theme-card" data-theme="ocean" onclick="pickTheme(this)">
+          <div class="theme-preview"><div style="background:#0f2044"></div><div style="background:#3b82f6"></div><div style="background:#7dd3fc"></div></div>
+          <div class="theme-name">Ocean</div>
+        </div>
+        <div class="theme-card" data-theme="rose" onclick="pickTheme(this)">
+          <div class="theme-preview"><div style="background:#1c0a14"></div><div style="background:#e11d6a"></div><div style="background:#fda4af"></div></div>
+          <div class="theme-name">Rose</div>
+        </div>
+        <div class="theme-card" data-theme="forest" onclick="pickTheme(this)">
+          <div class="theme-preview"><div style="background:#052e16"></div><div style="background:#16a34a"></div><div style="background:#bbf7d0"></div></div>
+          <div class="theme-name">Forest</div>
+        </div>
+        <div class="theme-card" data-theme="minimal" onclick="pickTheme(this)">
+          <div class="theme-preview"><div style="background:#fafafa"></div><div style="background:#e5e7eb"></div><div style="background:#111"></div></div>
+          <div class="theme-name">Minimal</div>
+        </div>
+        <div class="theme-card" data-theme="sunset" onclick="pickTheme(this)">
+          <div class="theme-preview"><div style="background:#1c0a00"></div><div style="background:#ea580c"></div><div style="background:#fcd34d"></div></div>
+          <div class="theme-name">Sunset</div>
+        </div>
+        <div class="theme-card" data-theme="violet" onclick="pickTheme(this)">
+          <div class="theme-preview"><div style="background:#0d0720"></div><div style="background:#7c3aed"></div><div style="background:#c4b5fd"></div></div>
+          <div class="theme-name">Violet</div>
+        </div>
+        <div class="theme-card" data-theme="slate" onclick="pickTheme(this)">
+          <div class="theme-preview"><div style="background:#0f172a"></div><div style="background:#475569"></div><div style="background:#e2e8f0"></div></div>
+          <div class="theme-name">Slate</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="field">
+      <div class="field-label">Number of slides</div>
+      <div class="slider-row">
+        <input type="range" class="slider" id="slides" min="4" max="12" value="6" step="1" oninput="document.getElementById('sval').textContent=this.value"/>
+        <div class="slider-val" id="sval">6</div>
+      </div>
+    </div>
+
+    <div class="field">
+      <div class="field-label">Extra instructions <span>optional</span></div>
+      <textarea id="extra" placeholder="e.g. Focus on business impact, use simple language, target audience is executives..."></textarea>
+    </div>
+
+    <button class="gen-btn" id="gen-btn" onclick="generate()">✦ Generate Presentation</button>
+  </div>
+
+  <div class="progress-section" id="progress-section">
+    <div class="progress-steps">
+      <div class="pstep" id="ps1"><div class="pstep-dot">🤖</div><div class="pstep-label">AI writing</div></div>
+      <div class="pstep" id="ps2"><div class="pstep-dot">📋</div><div class="pstep-label">Parsing</div></div>
+      <div class="pstep" id="ps3"><div class="pstep-dot">🎨</div><div class="pstep-label">Styling</div></div>
+      <div class="pstep" id="ps4"><div class="pstep-dot">✓</div><div class="pstep-label">Ready</div></div>
+    </div>
+    <div class="progress-bar-wrap"><div class="progress-bar" id="pbar"></div></div>
+  </div>
+
+  <div class="result-section" id="result-section">
+    <div class="result-header">
+      <div class="result-icon">✓</div>
+      <div>
+        <div class="result-title" id="res-title">Presentation ready</div>
+        <div class="result-sub" id="res-sub">Click any slide to preview its content</div>
+      </div>
+    </div>
+    <div class="slide-chips" id="slide-chips"></div>
+    <div class="slide-detail" id="slide-detail">
+      <div style="color:var(--muted);font-size:13px;text-align:center;padding:20px 0">Select a slide above to preview</div>
+    </div>
+    <a class="dl-btn" id="dl-btn">↓ &nbsp;Download PowerPoint (.pptx)</a>
+  </div>
+</div>
+
+<div class="features">
+  <div class="feat-grid">
+    <div class="feat-card">
+      <div class="feat-icon" style="background:rgba(124,111,255,0.12)">✦</div>
+      <h4>AI-powered content</h4>
+      <p>LLaMA 3.3 70B generates professional, structured slide content tailored to your exact topic.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon" style="background:rgba(6,182,212,0.12)">◈</div>
+      <h4>8 premium themes</h4>
+      <p>From minimal white to deep ocean blue — Canva-quality designs built into every export.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon" style="background:rgba(16,185,129,0.12)">⬇</div>
+      <h4>Instant .pptx export</h4>
+      <p>Download a fully editable PowerPoint with speaker notes included on every slide.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+let selectedTheme = 'elegant';
+let lastSlides = [];
+
+function pickTheme(el) {
+  document.querySelectorAll('.theme-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedTheme = el.dataset.theme;
 }
 
+function setStep(n, progress) {
+  ['ps1','ps2','ps3','ps4'].forEach((id, i) => {
+    const el = document.getElementById(id);
+    el.className = 'pstep' + (i+1 < n ? ' done' : i+1 === n ? ' active' : '');
+  });
+  document.getElementById('pbar').style.width = progress + '%';
+}
 
-def add_textbox(slide, text, left, top, width, height,
-                size=18, bold=False, color=None, align=PP_ALIGN.LEFT):
-    box = slide.shapes.add_textbox(
-        Inches(left), Inches(top), Inches(width), Inches(height)
-    )
-    tf = box.text_frame
-    tf.word_wrap = True
-    p = tf.paragraphs[0]
-    p.alignment = align
-    run = p.add_run()
-    run.text = text
-    run.font.size = Pt(size)
-    run.font.bold = bold
-    if color:
-        run.font.color.rgb = color
-    return box
+function showChip(idx) {
+  document.querySelectorAll('.chip').forEach((c, i) => c.classList.toggle('active-chip', i === idx));
+  const s = lastSlides[idx];
+  document.getElementById('slide-detail').innerHTML =
+    '<h4>' + s.heading + '</h4><ul>' + s.bullets.map(b => '<li>' + b + '</li>').join('') + '</ul>';
+}
 
+async function generate() {
+  const topic = document.getElementById('topic').value.trim();
+  if (!topic) { showErr('Please enter a presentation topic.'); return; }
+  hideErr();
+  lastSlides = [];
+  document.getElementById('result-section').style.display = 'none';
+  document.getElementById('dl-btn').style.display = 'none';
+  document.getElementById('progress-section').style.display = 'block';
+  const btn = document.getElementById('gen-btn');
+  btn.disabled = true;
+  btn.textContent = 'Generating...';
+  setStep(1, 15);
 
-def set_bg(slide, color):
-    slide.background.fill.solid()
-    slide.background.fill.fore_color.rgb = color
+  const payload = {
+    topic: topic,
+    extra: document.getElementById('extra').value.trim(),
+    num_slides: parseInt(document.getElementById('slides').value),
+    theme: selectedTheme
+  };
 
+  try {
+    setStep(1, 30);
+    const res = await fetch('http://localhost:5000/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
 
-def make_title_slide(prs, title, subtitle, t):
-    slide = prs.slides.add_slide(prs.slide_layouts[6])
-    set_bg(slide, t["bg1"])
-
-    # Left accent bar
-    bar = slide.shapes.add_shape(1, Inches(0), Inches(0), Inches(0.3), Inches(7.5))
-    bar.fill.solid()
-    bar.fill.fore_color.rgb = t["accent"]
-    bar.line.fill.background()
-
-    # Bottom strip
-    strip = slide.shapes.add_shape(1, Inches(0), Inches(7.05), Inches(13.33), Inches(0.45))
-    strip.fill.solid()
-    strip.fill.fore_color.rgb = t["bg2"]
-    strip.line.fill.background()
-
-    # Decorative top-right corner box
-    corner = slide.shapes.add_shape(1, Inches(11.5), Inches(0), Inches(1.83), Inches(1.5))
-    corner.fill.solid()
-    corner.fill.fore_color.rgb = t["bullet_bg"]
-    corner.line.fill.background()
-
-    add_textbox(slide, title,    0.65, 2.1, 11.5, 2.2, size=44, bold=True,  color=t["text"])
-    add_textbox(slide, subtitle, 0.65, 4.5, 10.5, 1.0, size=20, bold=False, color=t["sub"])
-    add_textbox(slide, "Generated by SlideAI  ·  Powered by Groq",
-                0.65, 6.8, 8.0, 0.4, size=11, bold=False, color=t["sub"])
-
-
-def make_content_slide(prs, heading, bullets, speaker_note, t):
-    slide = prs.slides.add_slide(prs.slide_layouts[6])
-    set_bg(slide, t["bg2"])
-
-    # Top accent bar
-    top_bar = slide.shapes.add_shape(1, Inches(0), Inches(0), Inches(13.33), Inches(0.12))
-    top_bar.fill.solid()
-    top_bar.fill.fore_color.rgb = t["accent"]
-    top_bar.line.fill.background()
-
-    # Heading background
-    head_bg = slide.shapes.add_shape(1, Inches(0.3), Inches(0.18), Inches(12.6), Inches(1.0))
-    head_bg.fill.solid()
-    head_bg.fill.fore_color.rgb = t["bg1"]
-    head_bg.line.fill.background()
-
-    add_textbox(slide, heading, 0.5, 0.2, 12.0, 0.95, size=28, bold=True, color=t["accent"])
-
-    # Bullets
-    for i, bullet in enumerate(bullets):
-        top = 1.42 + i * 0.92
-
-        bg = slide.shapes.add_shape(1, Inches(0.3), Inches(top), Inches(12.6), Inches(0.78))
-        bg.fill.solid()
-        bg.fill.fore_color.rgb = t["bullet_bg"]
-        bg.line.color.rgb = t["bullet_border"]
-        bg.line.width = Pt(0.75)
-
-        add_textbox(slide, "▸", 0.42, top + 0.12, 0.38, 0.56, size=13, bold=True, color=t["arrow"])
-        add_textbox(slide, bullet, 0.84, top + 0.1, 12.0, 0.62, size=16, bold=False, color=t["text"])
-
-    # Speaker note
-    if speaker_note:
-        slide.notes_slide.notes_text_frame.text = speaker_note
-
-
-def build_ppt(data: dict, filename: str = "output.pptx", theme: str = "elegant"):
-    t = THEMES.get(theme, THEMES["elegant"])
-
-    prs = Presentation()
-    prs.slide_width  = Inches(13.33)
-    prs.slide_height = Inches(7.5)
-
-    make_title_slide(prs, data["title"], data["subtitle"], t)
-    print(f"[builder] Title slide: {data['title']}  |  Theme: {theme}")
-
-    for i, s in enumerate(data["slides"]):
-        make_content_slide(
-            prs,
-            heading=s["heading"],
-            bullets=s["bullets"],
-            speaker_note=s.get("speaker_note", ""),
-            t=t
-        )
-        print(f"[builder] Slide {i+1}: {s['heading']}")
-
-    prs.save(filename)
-    print(f"[builder] Saved → {filename}")
-
-
-# Quick test
-if __name__ == "__main__":
-    sample = {
-        "title": "The Future of AI",
-        "subtitle": "How artificial intelligence is reshaping our world",
-        "slides": [
-            {"heading": "Introduction", "bullets": ["AI is transforming industries", "Rapid growth since 2020", "Billions in investment globally"], "speaker_note": "Welcome everyone."},
-            {"heading": "Key Technologies", "bullets": ["Large language models", "Computer vision advances", "Reinforcement learning"], "speaker_note": "Let's dive into tech."},
-            {"heading": "Conclusion", "bullets": ["AI is here to stay", "Adapt and embrace change", "Exciting future ahead"], "speaker_note": "Thank you."},
-        ]
+    setStep(2, 60);
+    if (!res.ok) {
+      const e = await res.json();
+      throw new Error(e.error || 'Server error');
     }
-    for theme in ["elegant", "ocean", "rose", "violet"]:
-        build_ppt(sample, f"test_{theme}.pptx", theme)
-        print(f"Created test_{theme}.pptx")
+
+    setStep(3, 82);
+    const blob = await res.blob();
+    const dlUrl = URL.createObjectURL(blob);
+    setStep(4, 100);
+
+    setTimeout(async function() {
+      document.getElementById('progress-section').style.display = 'none';
+      document.getElementById('result-section').style.display = 'block';
+
+      try {
+        const pr = await fetch('http://localhost:5000/last_preview');
+        if (pr.ok) {
+          const data = await pr.json();
+          lastSlides = data.slides || [];
+          document.getElementById('res-title').textContent = data.title || 'Presentation ready';
+          document.getElementById('res-sub').textContent =
+            lastSlides.length + ' slides · ' + selectedTheme.charAt(0).toUpperCase() + selectedTheme.slice(1) + ' theme';
+          const chips = document.getElementById('slide-chips');
+          chips.innerHTML = lastSlides.map(function(s, i) {
+            return '<div class="chip" onclick="showChip(' + i + ')">Slide ' + (i+1) + '</div>';
+          }).join('');
+        }
+      } catch(e) {}
+
+      const dl = document.getElementById('dl-btn');
+      dl.href = dlUrl;
+      dl.download = topic.replace(/\s+/g, '_').slice(0, 30) + '.pptx';
+      dl.style.display = 'flex';
+      btn.disabled = false;
+      btn.textContent = '✦ Generate Presentation';
+    }, 500);
+
+  } catch(e) {
+    document.getElementById('progress-section').style.display = 'none';
+    btn.disabled = false;
+    btn.textContent = '✦ Generate Presentation';
+    showErr(
+      e.message.includes('fetch')
+        ? '⚠ Cannot connect to backend. Make sure app.py is running: python app.py'
+        : e.message
+    );
+  }
+}
+
+function showErr(m) {
+  const e = document.getElementById('err');
+  e.textContent = m;
+  e.style.display = 'block';
+}
+
+function hideErr() {
+  document.getElementById('err').style.display = 'none';
+}
+</script>
+</body>
+</html>
