@@ -8,26 +8,15 @@ load_dotenv()
 
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
-# 🔥 UPGRADED PROMPT (INSANE QUALITY)
-SYSTEM_PROMPT = """
-You are a world-class presentation designer.
+# 🔥 NEW ADVANCED PROMPT (WITH IMAGE SUPPORT)
+SYSTEM_PROMPT = """You are a presentation designer.
+Return ONLY a valid JSON object. No explanation. No markdown. No code fences.
 
-Create highly engaging, professional, and visually appealing slides.
-
-Rules:
-- Use powerful, concise bullet points
-- Make content clear, structured, and impactful
-- Add storytelling flow across slides
-- Use modern business language
-- Each slide should feel purposeful and well-designed
-
-Strict Instructions:
-- Return ONLY valid JSON (no explanation, no markdown, no extra text)
-- Follow this exact structure:
-
+Use this exact structure:
 {
   "title": "Main presentation title",
   "subtitle": "Short tagline",
+  "image_prompt": "A detailed visual description for an AI image generator, e.g. futuristic city skyline at sunset with solar panels, cinematic lighting",
   "slides": [
     {
       "heading": "Slide title",
@@ -36,13 +25,28 @@ Strict Instructions:
     }
   ]
 }
+
+Rules:
+- Exactly {num_slides} slides
+- 3-4 bullets per slide, each under 12 words
+- First slide: Introduction
+- Last slide: Conclusion
+- image_prompt must be vivid, descriptive, relevant to the topic, under 20 words
+- Use clear, modern, professional language
+- Return ONLY JSON. Nothing else.
 """
 
+
 def generate_slide_content(topic: str, extra: str = "", num_slides: int = 6) -> dict:
-    print(f"Asking AI about: {topic}")
+    print(f"Asking Groq about: '{topic}'...")
 
-    prompt = f"Topic: {topic}\nCreate exactly {num_slides} slides."
+    # 🔁 Replace {num_slides} dynamically
+    prompt = SYSTEM_PROMPT.replace("{num_slides}", str(num_slides))
 
+    # ➕ Add topic
+    prompt += f"\n\nTopic: {topic}"
+
+    # ➕ Add extra instructions if any
     if extra:
         prompt += f"\nExtra instructions: {extra}"
 
@@ -50,19 +54,20 @@ def generate_slide_content(topic: str, extra: str = "", num_slides: int = 6) -> 
         response = client.chat.completions.create(
             model="llama-3.3-70b-versatile",
             messages=[
-                {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": prompt}
+                {"role": "system", "content": prompt},
+                {"role": "user", "content": f"Create presentation on: {topic}"}
             ]
         )
 
         raw = response.choices[0].message.content
 
-        # Clean unwanted markdown if any
+        # 🧹 Clean markdown if AI adds it
         cleaned = re.sub(r"```json|```", "", raw).strip()
 
         data = json.loads(cleaned)
 
         print(f"✅ Generated {len(data['slides'])} slides")
+        print(f"🎨 Image prompt: {data.get('image_prompt', 'None')}")
 
         return data
 
